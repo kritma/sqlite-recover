@@ -1,3 +1,5 @@
+use crate::sqlite::SQLITE_OK;
+
 use self::recover::{LostAndFoundOption, Recover, RecoverConfig, StepCallback};
 
 use super::SQLiteError;
@@ -21,7 +23,7 @@ impl Database {
     let err_code =
       unsafe { sqlite3_open(CString::new(path).unwrap().as_c_str().as_ptr(), &mut db) };
 
-    if err_code != 0 {
+    if err_code != SQLITE_OK {
       return Err(SQLiteError {
         code: err_code,
         message: unsafe {

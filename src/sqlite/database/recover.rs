@@ -165,7 +165,7 @@ impl Recover {
       sqlite3_recover_errcode(self.sqlite_recover)
     };
 
-    if err_code != 0 {
+    if err_code != SQLITE_OK {
       return Err(SQLiteError {
         code: err_code,
         message: unsafe {
