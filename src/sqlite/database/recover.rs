@@ -1,6 +1,11 @@
+use napi::{Error, JsUnknown};
+
 use super::Database;
 use crate::sqlite::{SQLiteError, SQLITE_OK};
-use std::ffi::{c_char, c_int, c_void, CStr, CString};
+use std::{
+  ffi::{c_char, c_int, c_void, CStr, CString},
+  ops::DerefMut,
+};
 
 const SQLITE_RECOVER_LOST_AND_FOUND: i32 = 1;
 const SQLITE_RECOVER_FREELIST_CORRUPT: i32 = 2;
@@ -12,7 +17,8 @@ pub struct LostAndFoundOption {
   pub recover_freelist: bool,
 }
 
-pub type StepCallback = fn(&str);
+// pub type StepCallback = fn();
+pub type StepCallback = Box<dyn Fn()>;
 
 pub struct RecoverConfig {
   pub lost_and_found: Option<LostAndFoundOption>,
@@ -29,7 +35,10 @@ pub struct Recover {
 }
 
 impl Recover {
-  pub fn init_sql(db_to_recover: Database, path_to_recovered: &str) -> Result<Self, SQLiteError> {
+  pub fn init_sql(
+    db_to_recover: Database,
+    path_to_recovered: &str,
+  ) -> Result<Box<Self>, SQLiteError> {
     extern "C" {
       fn sqlite3_recover_init_sql(
         db: *mut c_void,
@@ -40,19 +49,19 @@ impl Recover {
     }
 
     let recovered = Database::open(path_to_recovered)?;
-    let mut recover = Self {
+    let mut recover = Box::new(Self {
       db_to_recover,
       recovered_db: Some(recovered),
       sqlite_recover: std::ptr::null_mut(),
       step_callback: None,
-    };
+    });
 
     recover.sqlite_recover = unsafe {
       sqlite3_recover_init_sql(
         recover.db_to_recover.sqlite_db,
         CString::new("main").unwrap().as_c_str().as_ptr(),
         Recover::recover_step,
-        &mut recover as *mut Recover as *mut c_void,
+        recover.deref_mut() as *mut Recover as *mut c_void,
       )
     };
 
@@ -87,12 +96,34 @@ impl Recover {
   }
 
   extern "C" fn recover_step(db: *mut c_void, sql: *const c_char) -> c_int {
-    let db = db as *mut Recover;
-    unsafe {
-      if let Some(callback) = (*db).step_callback {
-        callback(CStr::from_ptr(sql).to_str().unwrap());
-      }
+    extern "C" {
+      fn sqlite3_exec(
+        db: *mut c_void,
+        sql: *const c_char,
+        callback: *mut c_void,
+        ctx: *mut c_void,
+        errmsg: *mut *mut c_char, // automatic allocation
+      ) -> c_int;
+      // fn sqlite3_free(ptr: *mut c_void);
     }
+    let db = unsafe { &mut *(db as *mut Recover) };
+
+    unsafe {
+      // let mut err_msg = std::ptr::null_mut::<c_char>();
+      sqlite3_exec(
+        db.recovered_db.as_ref().unwrap().sqlite_db,
+        sql,
+        std::ptr::null_mut(),
+        std::ptr::null_mut(),
+        std::ptr::null_mut(),
+        // &mut err_msg as *mut *mut c_char,
+      );
+    }
+
+    if let Some(callback) = &db.step_callback {
+      callback();
+    }
+
     SQLITE_OK
   }
 
