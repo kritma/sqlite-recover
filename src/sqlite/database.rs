@@ -1,7 +1,9 @@
+use self::recover::{LostAndFoundOption, Recover, RecoverConfig, StepCallback};
+
 use super::SQLiteError;
 use std::ffi::{c_char, c_int, c_void, CStr, CString};
 
-pub mod recover;
+mod recover;
 
 pub struct Database {
   sqlite_db: *mut c_void,
@@ -34,7 +36,43 @@ impl Database {
     Ok(Database { sqlite_db: db })
   }
 
-  // pub fn recover(self, recovered_path: &str, cb: extern "C" fn() -> c_int) {}
+  pub fn recover_to(self, recovered_path: &str) -> Result<(), SQLiteError> {
+    let mut recover = Recover::init(self, recovered_path);
+
+    recover.configure(RecoverConfig {
+      lost_and_found: Some(LostAndFoundOption {
+        name: "lost_and_found".to_string(),
+        recover_freelist: false,
+      }),
+      recover_rowids: true,
+      slow_indexes: false,
+      step_callback: None,
+    });
+
+    recover.run()?;
+    Ok(())
+  }
+
+  pub fn recover_sql_to(
+    self,
+    recovered_path: &str,
+    step_callback: StepCallback,
+  ) -> Result<(), SQLiteError> {
+    let mut recover = Recover::init_sql(self, recovered_path)?;
+
+    recover.configure(RecoverConfig {
+      lost_and_found: Some(LostAndFoundOption {
+        name: "lost_and_found".to_string(),
+        recover_freelist: false,
+      }),
+      recover_rowids: true,
+      slow_indexes: false,
+      step_callback: Some(step_callback),
+    });
+
+    recover.run()?;
+    Ok(())
+  }
 }
 
 impl Drop for Database {

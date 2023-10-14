@@ -1,5 +1,5 @@
 use super::Database;
-use crate::sqlite::SQLiteError;
+use crate::sqlite::{SQLiteError, SQLITE_OK};
 use std::ffi::{c_char, c_int, c_void, CStr, CString};
 
 const SQLITE_RECOVER_LOST_AND_FOUND: i32 = 1;
@@ -18,66 +18,89 @@ pub struct RecoverConfig {
   pub lost_and_found: Option<LostAndFoundOption>,
   pub recover_rowids: bool,
   pub slow_indexes: bool,
-  pub callback: Option<StepCallback>,
+  pub step_callback: Option<StepCallback>,
 }
 
 pub struct Recover {
   db_to_recover: Database,
-  recovered: Database,
+  recovered_db: Option<Database>,
   sqlite_recover: *mut c_void,
-  callback: Option<StepCallback>,
+  step_callback: Option<StepCallback>,
 }
 
 impl Recover {
-  pub fn init(db_to_recover: Database, path_to_recovered: &str) -> Result<Self, SQLiteError> {
+  pub fn init_sql(db_to_recover: Database, path_to_recovered: &str) -> Result<Self, SQLiteError> {
     extern "C" {
       fn sqlite3_recover_init_sql(
         db: *mut c_void,
         name: *const c_char,
-        cb: extern "C" fn(ctx: *mut Recover, sql: *const c_char) -> c_int,
+        cb: extern "C" fn(ctx: *mut c_void, sql: *const c_char) -> c_int,
         ctx: *mut c_void,
       ) -> *mut c_void;
     }
 
-    let recovered = Database::open(path_to_recovered);
-    match recovered {
-      Ok(recovered) => {
-        let mut recover = Self {
-          db_to_recover,
-          recovered,
-          sqlite_recover: std::ptr::null_mut(),
-          callback: None,
-        };
+    let recovered = Database::open(path_to_recovered)?;
+    let mut recover = Self {
+      db_to_recover,
+      recovered_db: Some(recovered),
+      sqlite_recover: std::ptr::null_mut(),
+      step_callback: None,
+    };
 
-        recover.sqlite_recover = unsafe {
-          sqlite3_recover_init_sql(
-            recover.db_to_recover.sqlite_db,
-            CString::new("main").unwrap().as_c_str().as_ptr(),
-            Recover::recover_step,
-            &mut recover as *mut Recover as *mut c_void,
-          )
-        };
+    recover.sqlite_recover = unsafe {
+      sqlite3_recover_init_sql(
+        recover.db_to_recover.sqlite_db,
+        CString::new("main").unwrap().as_c_str().as_ptr(),
+        Recover::recover_step,
+        &mut recover as *mut Recover as *mut c_void,
+      )
+    };
 
-        Ok(recover)
-      }
-      Err(err) => Err(err),
-    }
+    Ok(recover)
   }
 
-  extern "C" fn recover_step(db: *mut Recover, sql: *const c_char) -> c_int {
+  pub fn init(db_to_recover: Database, path_to_recovered: &str) -> Self {
+    extern "C" {
+      fn sqlite3_recover_init(
+        db: *mut c_void,
+        name: *const c_char,
+        path_to_recovered: *const c_char,
+      ) -> *mut c_void;
+    }
+
+    let mut recover = Self {
+      db_to_recover,
+      recovered_db: None,
+      sqlite_recover: std::ptr::null_mut(),
+      step_callback: None,
+    };
+
+    recover.sqlite_recover = unsafe {
+      sqlite3_recover_init(
+        recover.db_to_recover.sqlite_db,
+        CString::new("main").unwrap().as_c_str().as_ptr(),
+        CString::new(path_to_recovered).unwrap().as_c_str().as_ptr(),
+      )
+    };
+
+    recover
+  }
+
+  extern "C" fn recover_step(db: *mut c_void, sql: *const c_char) -> c_int {
+    let db = db as *mut Recover;
     unsafe {
-      if let Some(callback) = (*db).callback {
+      if let Some(callback) = (*db).step_callback {
         callback(CStr::from_ptr(sql).to_str().unwrap());
       }
     }
-    0
+    SQLITE_OK
   }
 
   pub fn configure(&mut self, config: RecoverConfig) {
     extern "C" {
       fn sqlite3_recover_config(recover: *mut c_void, op: c_int, arg: *mut c_void);
     }
-    self.callback = config.callback;
+    self.step_callback = config.step_callback;
 
     // default is 0
     if config.recover_rowids {
@@ -133,7 +156,6 @@ impl Recover {
   pub fn run(&self) -> Result<(), SQLiteError> {
     extern "C" {
       fn sqlite3_recover_run(recover: *mut c_void) -> c_int;
-      fn sqlite3_recover_finish(recover: *mut c_void) -> c_int;
       fn sqlite3_recover_errmsg(recover: *mut c_void) -> *const c_char;
       fn sqlite3_recover_errcode(recover: *mut c_void) -> c_int;
     }
@@ -142,10 +164,6 @@ impl Recover {
       sqlite3_recover_run(self.sqlite_recover);
       sqlite3_recover_errcode(self.sqlite_recover)
     };
-
-    unsafe {
-      sqlite3_recover_finish(self.sqlite_recover);
-    }
 
     if err_code != 0 {
       return Err(SQLiteError {
@@ -160,5 +178,14 @@ impl Recover {
     }
 
     Ok(())
+  }
+}
+
+impl Drop for Recover {
+  fn drop(&mut self) {
+    extern "C" {
+      fn sqlite3_recover_finish(recover: *mut c_void) -> c_int;
+    }
+    unsafe { sqlite3_recover_finish(self.sqlite_recover) };
   }
 }

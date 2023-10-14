@@ -7,6 +7,7 @@ fn main() {
     .file("./src/sqlite-lib/dbdata.c")
     .file("./src/sqlite-lib/sqlite3recover.c")
     .include("src/sqlite-lib")
+    .define("SQLITE_ENABLE_DBPAGE_VTAB", None)
     .static_flag(true)
     .shared_flag(true)
     .compile("sqlite_with_recover");
