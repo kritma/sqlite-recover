@@ -39,7 +39,7 @@ impl Task for Recover {
 pub struct RecoverBySQL {
   path: String,
   recovered: String,
-  step_callback: Vec<Box<dyn Fn() + Send>>,
+  step_callback: Option<Box<dyn Fn() + Send>>,
 }
 
 impl RecoverBySQL {
@@ -47,7 +47,7 @@ impl RecoverBySQL {
     Self {
       path,
       recovered,
-      step_callback: vec![step_callback],
+      step_callback: Some(step_callback),
     }
   }
 }
@@ -59,7 +59,7 @@ impl Task for RecoverBySQL {
 
   fn compute(&mut self) -> Result<Self::Output> {
     match Database::open(&self.path) {
-      Ok(db) => match db.recover_sql_to(&self.recovered, self.step_callback.pop().unwrap()) {
+      Ok(db) => match db.recover_sql_to(&self.recovered, self.step_callback.take().unwrap()) {
         Ok(()) => Ok(()),
         Err(err) => Err(Error::from_reason(err.message)),
       },
