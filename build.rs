@@ -4,8 +4,12 @@ extern crate napi_build;
 fn main() {
   cc::Build::new()
     .file("./src/sqlite-lib/sqlite3.c")
-    .file("./src/sqlite-lib/shell.c")
+    .file("./src/sqlite-lib/dbdata.c")
+    .file("./src/sqlite-lib/sqlite3recover.c")
+    .include("src/sqlite-lib")
     .static_flag(true)
-    .compile("sqlite");
+    .shared_flag(true)
+    .compile("sqlite_with_recover");
+
   napi_build::setup();
 }
