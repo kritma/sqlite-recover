@@ -1,7 +1,5 @@
-use napi::{Error, JsUnknown};
-
 use super::Database;
-use crate::sqlite::{SQLiteError, SQLITE_OK};
+use crate::sqlite::{SQLiteError, StepCallback, SQLITE_OK};
 use std::{
   ffi::{c_char, c_int, c_void, CStr, CString},
   ops::DerefMut,
@@ -16,9 +14,6 @@ pub struct LostAndFoundOption {
   pub name: String,
   pub recover_freelist: bool,
 }
-
-// pub type StepCallback = fn();
-pub type StepCallback = Box<dyn Fn()>;
 
 pub struct RecoverConfig {
   pub lost_and_found: Option<LostAndFoundOption>,

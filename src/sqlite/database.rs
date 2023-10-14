@@ -1,8 +1,8 @@
 use crate::sqlite::SQLITE_OK;
 
-use self::recover::{LostAndFoundOption, Recover, RecoverConfig, StepCallback};
+use self::recover::{LostAndFoundOption, Recover, RecoverConfig};
 
-use super::SQLiteError;
+use super::{SQLiteError, StepCallback};
 use std::ffi::{c_char, c_int, c_void, CStr, CString};
 
 mod recover;
