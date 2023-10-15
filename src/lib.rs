@@ -8,7 +8,7 @@ use napi::{
   },
   Env, Error, JsFunction,
 };
-use recover::tasks::{Recover, RecoverBySQL};
+use recover::tasks::{RecoverSQLTask, RecoverTask};
 use wrappers::SQLiteError;
 
 mod recover;
@@ -45,8 +45,12 @@ pub fn recover_sql(
 }
 
 #[napi]
-pub fn recover_async(path: String, recovered: String, signal: AbortSignal) -> AsyncTask<Recover> {
-  AsyncTask::with_signal(Recover::new(path, recovered), signal)
+pub fn recover_async(
+  path: String,
+  recovered: String,
+  signal: AbortSignal,
+) -> AsyncTask<RecoverTask> {
+  AsyncTask::with_signal(RecoverTask::new(path, recovered), signal)
 }
 
 #[napi]
@@ -55,7 +59,7 @@ pub fn recover_sql_async(
   recovered: String,
   #[napi(ts_arg_type = "(Error) => void")] step_callback: JsFunction,
   signal: AbortSignal,
-) -> AsyncTask<RecoverBySQL> {
+) -> AsyncTask<RecoverSQLTask> {
   let thread_safe_cb: ThreadsafeFunction<SQLiteError, ErrorStrategy::CalleeHandled> = step_callback
     .create_threadsafe_function(10, |ctx: ThreadSafeCallContext<SQLiteError>| {
       Ok(vec![ctx
@@ -64,7 +68,7 @@ pub fn recover_sql_async(
     })
     .unwrap();
   AsyncTask::with_signal(
-    RecoverBySQL::new(
+    RecoverSQLTask::new(
       path,
       recovered,
       Box::new(move |err: SQLiteError| {

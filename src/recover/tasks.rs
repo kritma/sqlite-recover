@@ -1,22 +1,22 @@
 use napi::{bindgen_prelude::Undefined, Env, Error, Result, Task};
 
-use crate::wrappers::{database::Database, SQLiteError};
+use crate::wrappers::SQLiteError;
 
 use super::{recover, recover_sql};
 
-pub struct Recover {
+pub struct RecoverTask {
   path: String,
   recovered: String,
 }
 
-impl Recover {
+impl RecoverTask {
   pub fn new(path: String, recovered: String) -> Self {
     Self { path, recovered }
   }
 }
 
 #[napi]
-impl Task for Recover {
+impl Task for RecoverTask {
   type Output = ();
   type JsValue = Undefined;
 
@@ -36,13 +36,13 @@ impl Task for Recover {
   }
 }
 
-pub struct RecoverBySQL {
+pub struct RecoverSQLTask {
   path: String,
   recovered: String,
   step_callback: Option<Box<dyn Fn(SQLiteError) + Send>>,
 }
 
-impl RecoverBySQL {
+impl RecoverSQLTask {
   pub fn new(
     path: String,
     recovered: String,
@@ -57,7 +57,7 @@ impl RecoverBySQL {
 }
 
 #[napi]
-impl Task for RecoverBySQL {
+impl Task for RecoverSQLTask {
   type Output = ();
   type JsValue = Undefined;
 
