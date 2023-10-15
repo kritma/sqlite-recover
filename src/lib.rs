@@ -8,7 +8,7 @@ use napi::{
   },
   Env, Error, JsFunction,
 };
-use recover::tasks::{RecoverSQLTask, RecoverTask};
+use recover::{RecoverSQLTask, RecoverTask};
 use wrappers::SQLiteError;
 
 mod recover;

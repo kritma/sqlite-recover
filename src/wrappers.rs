@@ -1,4 +1,4 @@
-pub mod database;
+mod database;
 
 const SQLITE_OK: i32 = 0;
 const SQLITE_RECOVER_LOST_AND_FOUND: i32 = 1;
@@ -12,3 +12,5 @@ pub struct SQLiteError {
 }
 
 pub type StepCallback = Box<dyn Fn(SQLiteError)>;
+
+pub use database::Database;

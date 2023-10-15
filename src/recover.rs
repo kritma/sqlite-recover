@@ -1,6 +1,8 @@
-use crate::wrappers::{database::Database, SQLiteError, StepCallback};
+use crate::wrappers::{Database, SQLiteError, StepCallback};
 
-pub mod tasks;
+mod tasks;
+
+pub use tasks::{RecoverSQLTask, RecoverTask};
 
 pub fn recover(path: &str, recovered: &str) -> Result<(), SQLiteError> {
   Database::open(path)?.recover_to(recovered)
