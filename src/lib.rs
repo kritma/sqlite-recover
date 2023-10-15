@@ -6,7 +6,7 @@ use napi::{
   threadsafe_function::{
     ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode,
   },
-  Env, Error, JsFunction,
+  Env, Error, JsFunction, Status,
 };
 use recover::{RecoverSQLTask, RecoverTask};
 use wrappers::SQLiteError;
@@ -57,22 +57,21 @@ pub fn recover_async(
 pub fn recover_sql_async(
   path: String,
   recovered: String,
-  #[napi(ts_arg_type = "(Error) => void")] step_callback: JsFunction,
+  #[napi(ts_arg_type = "(err: Error | null) => void")] step_callback: JsFunction,
   signal: AbortSignal,
 ) -> AsyncTask<RecoverSQLTask> {
-  let thread_safe_cb: ThreadsafeFunction<SQLiteError, ErrorStrategy::CalleeHandled> = step_callback
-    .create_threadsafe_function(10, |ctx: ThreadSafeCallContext<SQLiteError>| {
-      Ok(vec![ctx
-        .env
-        .create_error(Error::from_reason(ctx.value.message))])
-    })
+  let thread_safe_cb: ThreadsafeFunction<(), ErrorStrategy::CalleeHandled> = step_callback
+    .create_threadsafe_function(10, |_| Ok(vec![()]))
     .unwrap();
   AsyncTask::with_signal(
     RecoverSQLTask::new(
       path,
       recovered,
       Box::new(move |err: SQLiteError| {
-        thread_safe_cb.call(Ok(err), ThreadsafeFunctionCallMode::Blocking);
+        thread_safe_cb.call(
+          Err(Error::from_reason(err.message)),
+          ThreadsafeFunctionCallMode::Blocking,
+        );
       }),
     ),
     signal,

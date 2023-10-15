@@ -6,4 +6,4 @@
 export function recover(path: string, recovered: string): string | null
 export function recoverSql(path: string, recovered: string, stepCallback: (err: Error) => void): string | null
 export function recoverAsync(path: string, recovered: string, signal: AbortSignal): Promise<undefined>
-export function recoverSqlAsync(path: string, recovered: string, stepCallback: (Error) => void, signal: AbortSignal): Promise<undefined>
+export function recoverSqlAsync(path: string, recovered: string, stepCallback: (err: Error | null) => void, signal: AbortSignal): Promise<undefined>
