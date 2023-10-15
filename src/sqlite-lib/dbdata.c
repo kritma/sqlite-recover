@@ -934,7 +934,6 @@ static int sqlite3DbdataRegister(sqlite3 *db){
     0,                            /* xRelease */
     0,                            /* xRollbackTo */
     0,                            /* xShadowName */
-    0                             /* xIntegrity */
   };
 
   int rc = sqlite3_create_module(db, "sqlite_dbdata", &dbdata_module, 0);
