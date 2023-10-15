@@ -1,6 +1,6 @@
 {
   "name": "sqlite-recover-darwin-x64",
-  "version": "0.0.0",
+  "version": "1.0.3",
   "os": [
     "darwin"
   ],
@@ -11,8 +11,15 @@
   "files": [
     "sqlite-recover.darwin-x64.node"
   ],
+  "description": "sqlite-recover",
+  "keywords": [],
   "license": "MIT",
   "engines": {
     "node": ">= 10"
-  }
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "repository": "https://github.com/kritma/sqlite-recover"
 }

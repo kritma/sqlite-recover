@@ -1,15 +1,15 @@
 {
-  "name": "sqlite-recover-win32-x64-msvc",
+  "name": "sqlite-recover-freebsd-x64",
   "version": "1.0.3",
   "os": [
-    "win32"
+    "freebsd"
   ],
   "cpu": [
     "x64"
   ],
-  "main": "sqlite-recover.win32-x64-msvc.node",
+  "main": "sqlite-recover.freebsd-x64.node",
   "files": [
-    "sqlite-recover.win32-x64-msvc.node"
+    "sqlite-recover.freebsd-x64.node"
   ],
   "description": "sqlite-recover",
   "keywords": [],

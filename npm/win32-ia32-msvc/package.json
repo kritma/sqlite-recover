@@ -1,15 +1,15 @@
 {
-  "name": "sqlite-recover-win32-x64-msvc",
+  "name": "sqlite-recover-win32-ia32-msvc",
   "version": "1.0.3",
   "os": [
     "win32"
   ],
   "cpu": [
-    "x64"
+    "ia32"
   ],
-  "main": "sqlite-recover.win32-x64-msvc.node",
+  "main": "sqlite-recover.win32-ia32-msvc.node",
   "files": [
-    "sqlite-recover.win32-x64-msvc.node"
+    "sqlite-recover.win32-ia32-msvc.node"
   ],
   "description": "sqlite-recover",
   "keywords": [],

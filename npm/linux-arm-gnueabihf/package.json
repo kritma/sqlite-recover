@@ -1,15 +1,15 @@
 {
-  "name": "sqlite-recover-win32-x64-msvc",
+  "name": "sqlite-recover-linux-arm-gnueabihf",
   "version": "1.0.3",
   "os": [
-    "win32"
+    "linux"
   ],
   "cpu": [
-    "x64"
+    "arm"
   ],
-  "main": "sqlite-recover.win32-x64-msvc.node",
+  "main": "sqlite-recover.linux-arm-gnueabihf.node",
   "files": [
-    "sqlite-recover.win32-x64-msvc.node"
+    "sqlite-recover.linux-arm-gnueabihf.node"
   ],
   "description": "sqlite-recover",
   "keywords": [],

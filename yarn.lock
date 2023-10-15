@@ -226,7 +226,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ava@npm:^5.1.1":
+"ava@npm:^5.3.1":
   version: 5.3.1
   resolution: "ava@npm:5.3.1"
   dependencies:
@@ -1820,7 +1820,7 @@ __metadata:
   resolution: "sqlite-recover@workspace:."
   dependencies:
     "@napi-rs/cli": ^2.16.3
-    ava: ^5.1.1
+    ava: ^5.3.1
   languageName: unknown
   linkType: soft
 

@@ -1,15 +1,15 @@
 {
-  "name": "sqlite-recover-win32-x64-msvc",
+  "name": "sqlite-recover-android-arm-eabi",
   "version": "1.0.3",
   "os": [
-    "win32"
+    "android"
   ],
   "cpu": [
-    "x64"
+    "arm"
   ],
-  "main": "sqlite-recover.win32-x64-msvc.node",
+  "main": "sqlite-recover.android-arm-eabi.node",
   "files": [
-    "sqlite-recover.win32-x64-msvc.node"
+    "sqlite-recover.android-arm-eabi.node"
   ],
   "description": "sqlite-recover",
   "keywords": [],

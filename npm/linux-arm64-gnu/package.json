@@ -1,15 +1,15 @@
 {
-  "name": "sqlite-recover-win32-x64-msvc",
+  "name": "sqlite-recover-linux-arm64-gnu",
   "version": "1.0.3",
   "os": [
-    "win32"
+    "linux"
   ],
   "cpu": [
-    "x64"
+    "arm64"
   ],
-  "main": "sqlite-recover.win32-x64-msvc.node",
+  "main": "sqlite-recover.linux-arm64-gnu.node",
   "files": [
-    "sqlite-recover.win32-x64-msvc.node"
+    "sqlite-recover.linux-arm64-gnu.node"
   ],
   "description": "sqlite-recover",
   "keywords": [],
@@ -21,5 +21,8 @@
     "registry": "https://registry.npmjs.org/",
     "access": "public"
   },
-  "repository": "https://github.com/kritma/sqlite-recover"
+  "repository": "https://github.com/kritma/sqlite-recover",
+  "libc": [
+    "glibc"
+  ]
 }

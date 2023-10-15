@@ -1,26 +1,39 @@
 {
   "name": "sqlite-recover",
-  "version": "0.0.0",
+  "version": "1.0.3",
+  "description": "sqlite-recover",
   "main": "index.js",
-  "types": "index.d.ts",
+  "repository": "https://github.com/kritma/sqlite-recover",
+  "license": "MIT",
+  "keywords": [],
+  "files": [
+    "index.d.ts",
+    "index.js"
+  ],
   "napi": {
     "name": "sqlite-recover",
     "triples": {
+      "defaults": true,
       "additional": [
-        "aarch64-apple-darwin"
+        "x86_64-unknown-linux-musl",
+        "aarch64-unknown-linux-gnu",
+        "i686-pc-windows-msvc",
+        "armv7-unknown-linux-gnueabihf",
+        "aarch64-apple-darwin",
+        "aarch64-linux-android",
+        "x86_64-unknown-freebsd",
+        "aarch64-unknown-linux-musl",
+        "aarch64-pc-windows-msvc",
+        "armv7-linux-androideabi"
       ]
     }
   },
-  "license": "MIT",
-  "devDependencies": {
-    "@napi-rs/cli": "^2.16.3",
-    "ava": "^5.1.1"
-  },
-  "ava": {
-    "timeout": "3m"
-  },
   "engines": {
     "node": ">= 10"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
   },
   "scripts": {
     "artifacts": "napi artifacts",
@@ -28,14 +41,15 @@
     "build:debug": "napi build --platform",
     "prepublishOnly": "napi prepublish -t npm",
     "test": "ava",
-    "universal": "napi universal",
     "version": "napi version"
   },
-  "packageManager": "yarn@3.6.4",
-  "optionalDependencies": {
-    "sqlite-recover-win32-x64-msvc": "0.0.0",
-    "sqlite-recover-darwin-x64": "0.0.0",
-    "sqlite-recover-linux-x64-gnu": "0.0.0",
-    "sqlite-recover-darwin-arm64": "0.0.0"
-  }
+  "devDependencies": {
+    "@napi-rs/cli": "^2.16.3",
+    "ava": "^5.3.1"
+  },
+  "ava": {
+    "timeout": "2m",
+    "workerThreads": false
+  },
+  "packageManager": "yarn@3.6.4"
 }
