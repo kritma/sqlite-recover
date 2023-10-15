@@ -3,10 +3,9 @@ extern crate napi_build;
 
 fn main() {
   cc::Build::new()
-    .file("./src/sqlite-lib/sqlite3.c")
-    .file("./src/sqlite-lib/dbdata.c")
-    .file("./src/sqlite-lib/sqlite3recover.c")
-    .include("src/sqlite-lib")
+    .include("./src/sqlite-amalgamation-3430200")
+    .file("./src/sqlite-amalgamation-3430200/sqlite3.c")
+    .file("./src/sqlite-amalgamation-3430200/shell.c")
     .define("SQLITE_ENABLE_DBPAGE_VTAB", None)
     // .static_flag(true)
     // .shared_flag(true)
