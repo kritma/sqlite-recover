@@ -1,14 +1,12 @@
 use super::Database;
-use crate::sqlite::{SQLiteError, StepCallback, SQLITE_OK};
+use crate::wrappers::{
+  SQLiteError, StepCallback, SQLITE_OK, SQLITE_RECOVER_FREELIST_CORRUPT,
+  SQLITE_RECOVER_LOST_AND_FOUND, SQLITE_RECOVER_ROWIDS, SQLITE_RECOVER_SLOWINDEXES,
+};
 use std::{
   ffi::{c_char, c_int, c_void, CStr, CString},
   ops::DerefMut,
 };
-
-const SQLITE_RECOVER_LOST_AND_FOUND: i32 = 1;
-const SQLITE_RECOVER_FREELIST_CORRUPT: i32 = 2;
-const SQLITE_RECOVER_ROWIDS: i32 = 3;
-const SQLITE_RECOVER_SLOWINDEXES: i32 = 4;
 
 pub struct LostAndFoundOption {
   pub name: String,
@@ -99,25 +97,32 @@ impl Recover {
         ctx: *mut c_void,
         errmsg: *mut *mut c_char, // automatic allocation
       ) -> c_int;
-      // fn sqlite3_free(ptr: *mut c_void);
+      fn sqlite3_free(ptr: *mut c_void);
     }
     let db = unsafe { &mut *(db as *mut Recover) };
 
-    unsafe {
-      // let mut err_msg = std::ptr::null_mut::<c_char>();
+    let mut err_msg = std::ptr::null_mut::<c_char>();
+
+    let err_code = unsafe {
       sqlite3_exec(
         db.recovered_db.as_ref().unwrap().sqlite_db,
         sql,
         std::ptr::null_mut(),
         std::ptr::null_mut(),
-        std::ptr::null_mut(),
-        // &mut err_msg as *mut *mut c_char,
-      );
+        &mut err_msg as *mut *mut c_char,
+      )
+    };
+
+    if err_code != SQLITE_OK {
+      if let Some(callback) = &db.step_callback {
+        callback(SQLiteError {
+          code: err_code,
+          message: unsafe { CStr::from_ptr(err_msg).to_str().unwrap().to_string() },
+        });
+      }
     }
 
-    if let Some(callback) = &db.step_callback {
-      callback();
-    }
+    unsafe { sqlite3_free(err_msg as *mut c_void) };
 
     SQLITE_OK
   }

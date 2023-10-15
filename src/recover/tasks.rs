@@ -1,8 +1,8 @@
 use napi::{bindgen_prelude::Undefined, Env, Error, Result, Task};
 
-use crate::sqlite::database::Database;
+use crate::wrappers::{database::Database, SQLiteError};
 
-use super::sync_functions::recover_sync;
+use super::{recover, recover_sql};
 
 pub struct Recover {
   path: String,
@@ -21,7 +21,7 @@ impl Task for Recover {
   type JsValue = Undefined;
 
   fn compute(&mut self) -> Result<Self::Output> {
-    if let Err(err) = recover_sync(&self.path, &self.recovered) {
+    if let Err(err) = recover(&self.path, &self.recovered) {
       return Err(Error::from_reason(err.message));
     }
     Ok(())
@@ -39,11 +39,15 @@ impl Task for Recover {
 pub struct RecoverBySQL {
   path: String,
   recovered: String,
-  step_callback: Option<Box<dyn Fn() + Send>>,
+  step_callback: Option<Box<dyn Fn(SQLiteError) + Send>>,
 }
 
 impl RecoverBySQL {
-  pub fn new(path: String, recovered: String, step_callback: Box<dyn Fn() + Send>) -> Self {
+  pub fn new(
+    path: String,
+    recovered: String,
+    step_callback: Box<dyn Fn(SQLiteError) + Send>,
+  ) -> Self {
     Self {
       path,
       recovered,
@@ -58,13 +62,14 @@ impl Task for RecoverBySQL {
   type JsValue = Undefined;
 
   fn compute(&mut self) -> Result<Self::Output> {
-    match Database::open(&self.path) {
-      Ok(db) => match db.recover_sql_to(&self.recovered, self.step_callback.take().unwrap()) {
-        Ok(()) => Ok(()),
-        Err(err) => Err(Error::from_reason(err.message)),
-      },
-      Err(err) => Err(Error::from_reason(err.message)),
+    if let Err(err) = recover_sql(
+      &self.path,
+      &self.recovered,
+      self.step_callback.take().unwrap(),
+    ) {
+      return Err(Error::from_reason(err.message));
     }
+    Ok(())
   }
 
   fn resolve(&mut self, _env: Env, _output: Self::Output) -> Result<Self::JsValue> {

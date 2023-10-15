@@ -1,10 +1,12 @@
-use crate::sqlite::{database::Database, SQLiteError, StepCallback};
+use crate::wrappers::{database::Database, SQLiteError, StepCallback};
 
-pub fn recover_sync(path: &str, recovered: &str) -> Result<(), SQLiteError> {
+pub mod tasks;
+
+pub fn recover(path: &str, recovered: &str) -> Result<(), SQLiteError> {
   Database::open(path)?.recover_to(recovered)
 }
 
-pub fn recover_sql_sync(
+pub fn recover_sql(
   path: &str,
   recovered: &str,
   step_callback: StepCallback,

@@ -3,31 +3,40 @@ extern crate napi_derive;
 
 use napi::{
   bindgen_prelude::{AbortSignal, AsyncTask},
-  threadsafe_function::{ErrorStrategy, ThreadsafeFunction, ThreadsafeFunctionCallMode},
-  JsFunction,
+  threadsafe_function::{
+    ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode,
+  },
+  Env, Error, JsFunction,
 };
-use sqlite::recover::{
-  sync_functions::{recover_sql_sync, recover_sync},
-  tasks::{Recover, RecoverBySQL},
-};
+use recover::tasks::{Recover, RecoverBySQL};
+use wrappers::SQLiteError;
 
-mod sqlite;
+mod recover;
+mod wrappers;
 
 #[napi]
 pub fn recover(path: String, recovered: String) -> Option<String> {
-  if let Err(err) = recover_sync(&path, &recovered) {
+  if let Err(err) = recover::recover(&path, &recovered) {
     return Some(err.message);
   }
   None
 }
 
 #[napi]
-pub fn recover_sql(path: String, recovered: String, step_callback: JsFunction) -> Option<String> {
-  if let Err(err) = recover_sql_sync(
+pub fn recover_sql(
+  env: Env,
+  path: String,
+  recovered: String,
+  #[napi(ts_arg_type = "(err: Error) => void")] step_callback: JsFunction,
+) -> Option<String> {
+  if let Err(err) = recover::recover_sql(
     &path,
     &recovered,
-    Box::new(move || {
-      let _ = step_callback.call_without_args(None);
+    Box::new(move |err: SQLiteError| {
+      let _ = step_callback.call(
+        None,
+        &[env.create_error(Error::from_reason(err.message)).unwrap()],
+      );
     }),
   ) {
     return Some(err.message);
@@ -44,18 +53,22 @@ pub fn recover_async(path: String, recovered: String, signal: AbortSignal) -> As
 pub fn recover_sql_async(
   path: String,
   recovered: String,
-  step_callback: JsFunction,
+  #[napi(ts_arg_type = "(Error) => void")] step_callback: JsFunction,
   signal: AbortSignal,
 ) -> AsyncTask<RecoverBySQL> {
-  let thread_safe_cb: ThreadsafeFunction<(), ErrorStrategy::CalleeHandled> = step_callback
-    .create_threadsafe_function(0, |_| Ok(vec![()]))
+  let thread_safe_cb: ThreadsafeFunction<SQLiteError, ErrorStrategy::CalleeHandled> = step_callback
+    .create_threadsafe_function(10, |ctx: ThreadSafeCallContext<SQLiteError>| {
+      Ok(vec![ctx
+        .env
+        .create_error(Error::from_reason(ctx.value.message))])
+    })
     .unwrap();
   AsyncTask::with_signal(
     RecoverBySQL::new(
       path,
       recovered,
-      Box::new(move || {
-        thread_safe_cb.call(Ok(()), ThreadsafeFunctionCallMode::Blocking);
+      Box::new(move |err: SQLiteError| {
+        thread_safe_cb.call(Ok(err), ThreadsafeFunctionCallMode::Blocking);
       }),
     ),
     signal,

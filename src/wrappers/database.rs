@@ -1,4 +1,4 @@
-use crate::sqlite::SQLITE_OK;
+use crate::wrappers::SQLITE_OK;
 
 use self::recover::{LostAndFoundOption, Recover, RecoverConfig};
 
