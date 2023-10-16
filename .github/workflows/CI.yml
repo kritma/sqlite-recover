@@ -89,7 +89,7 @@ jobs:
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
             build: |-
               set -e &&
-              export CC=/aarch64-linux-musl-cross/bin/aarch64-linux-musl-gcc &&
+              export LD=aarch64-linux-musl-ld &&
               rustup target add aarch64-unknown-linux-musl &&
               yarn build --target aarch64-unknown-linux-musl &&
               /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
