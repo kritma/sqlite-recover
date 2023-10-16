@@ -25,13 +25,13 @@ pub fn recover_sql(
   env: Env,
   path: String,
   recovered: String,
-  #[napi(ts_arg_type = "(err: Error) => void")] step_callback: JsFunction,
+  #[napi(ts_arg_type = "(err: Error) => void")] callback: JsFunction,
 ) -> Option<String> {
   if let Err(err) = recover::recover_sql(
     &path,
     &recovered,
     Box::new(move |err: SQLiteError| {
-      let _ = step_callback.call(
+      let _ = callback.call(
         None,
         &[env.create_error(Error::from_reason(err.message)).unwrap()],
       );
@@ -55,10 +55,10 @@ pub fn recover_async(
 pub fn recover_sql_async(
   path: String,
   recovered: String,
-  #[napi(ts_arg_type = "(err: Error | null) => void")] step_callback: JsFunction,
+  #[napi(ts_arg_type = "(err: Error) => void")] callback: JsFunction,
   signal: AbortSignal,
 ) -> AsyncTask<RecoverSQLTask> {
-  let thread_safe_cb: ThreadsafeFunction<(), ErrorStrategy::CalleeHandled> = step_callback
+  let thread_safe_cb: ThreadsafeFunction<(), ErrorStrategy::CalleeHandled> = callback
     .create_threadsafe_function(10, |_| Ok(vec![()]))
     .unwrap();
   AsyncTask::with_signal(

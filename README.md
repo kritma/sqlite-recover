@@ -27,6 +27,7 @@ function recover(path: string, recovered: string): string | null
 function recoverAsync(path: string, recovered: string, signal: AbortSignal): Promise<undefined>
 
 // recovers database by executing sql
-function recoverSql(path: string, recovered: string, stepCallback: (err: Error) => void): string | null
-function recoverSqlAsync(path: string, recovered: string, stepCallback: (err: Error | null) => void, signal: AbortSignal): Promise<undefined>
+export function recoverSql(path: string, recovered: string, callback: (err: Error) => void): string | null
+export function recoverSqlAsync(path: string, recovered: string, callback: (err: Error) => void, signal: AbortSignal): Promise<undefined>
+
 ```

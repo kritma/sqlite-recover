@@ -48,7 +48,7 @@ impl Database {
       }),
       recover_rowids: true,
       slow_indexes: false,
-      step_callback: None,
+      callback: None,
     });
 
     recover.run()?;
@@ -58,7 +58,7 @@ impl Database {
   pub fn recover_sql_to(
     self,
     recovered_path: &str,
-    step_callback: StepCallback,
+    callback: StepCallback,
   ) -> Result<(), SQLiteError> {
     let mut recover = Recover::init_sql(self, recovered_path)?;
 
@@ -69,7 +69,7 @@ impl Database {
       }),
       recover_rowids: true,
       slow_indexes: false,
-      step_callback: Some(step_callback),
+      callback: Some(callback),
     });
 
     recover.run()?;

@@ -17,14 +17,14 @@ pub struct RecoverConfig {
   pub lost_and_found: Option<LostAndFoundOption>,
   pub recover_rowids: bool,
   pub slow_indexes: bool,
-  pub step_callback: Option<StepCallback>,
+  pub callback: Option<StepCallback>,
 }
 
 pub struct Recover {
   db_to_recover: Database,
   recovered_db: Option<Database>,
   sqlite_recover: *mut c_void,
-  step_callback: Option<StepCallback>,
+  callback: Option<StepCallback>,
 }
 
 impl Recover {
@@ -46,7 +46,7 @@ impl Recover {
       db_to_recover,
       recovered_db: Some(recovered),
       sqlite_recover: std::ptr::null_mut(),
-      step_callback: None,
+      callback: None,
     });
 
     recover.sqlite_recover = unsafe {
@@ -74,7 +74,7 @@ impl Recover {
       db_to_recover,
       recovered_db: None,
       sqlite_recover: std::ptr::null_mut(),
-      step_callback: None,
+      callback: None,
     };
 
     recover.sqlite_recover = unsafe {
@@ -114,7 +114,7 @@ impl Recover {
     };
 
     if err_code != SQLITE_OK {
-      if let Some(callback) = &db.step_callback {
+      if let Some(callback) = &db.callback {
         callback(SQLiteError {
           code: err_code,
           message: unsafe { CStr::from_ptr(err_msg).to_str().unwrap().to_string() },
@@ -131,7 +131,7 @@ impl Recover {
     extern "C" {
       fn sqlite3_recover_config(recover: *mut c_void, op: c_int, arg: *mut c_void);
     }
-    self.step_callback = config.step_callback;
+    self.callback = config.callback;
 
     // default is 0
     if config.recover_rowids {
