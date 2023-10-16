@@ -91,6 +91,7 @@ jobs:
               set -e &&
               export CC=$(/aarch64-linux-musl-cross/bin/aarch64-linux-musl-gcc) &&
               rustup target add aarch64-unknown-linux-musl &&
+              rustup toolchain remove x86_64-unknown-linux-musl &&
               yarn build --target aarch64-unknown-linux-musl &&
               /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
           - host: windows-latest
