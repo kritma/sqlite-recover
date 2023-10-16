@@ -3,10 +3,8 @@ extern crate napi_derive;
 
 use napi::{
   bindgen_prelude::{AbortSignal, AsyncTask},
-  threadsafe_function::{
-    ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode,
-  },
-  Env, Error, JsFunction, Status,
+  threadsafe_function::{ErrorStrategy, ThreadsafeFunction, ThreadsafeFunctionCallMode},
+  Env, Error, JsFunction,
 };
 use recover::{RecoverSQLTask, RecoverTask};
 use wrappers::SQLiteError;
