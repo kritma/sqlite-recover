@@ -5,7 +5,11 @@
   "main": "index.js",
   "repository": "https://github.com/kritma/sqlite-recover",
   "license": "MIT",
-  "keywords": [],
+  "keywords": [
+    "sqlite",
+    "database",
+    "recovery"
+  ],
   "files": [
     "index.d.ts",
     "index.js"
