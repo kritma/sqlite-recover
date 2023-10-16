@@ -15606,7 +15606,7 @@ static sqlite3_stmt *recoverInsertStmt(
 
   assert( nField<=pTab->nCol );
 
-  zSql = recoverMPrintf(p, "INSERT OR IGNORE INTO %Q(", pTab->zTab);
+  zSql = recoverMPrintf(p, "INSERT INTO %Q(", pTab->zTab);
 
   if( pTab->iRowidBind ){
     assert( pTab->bIntkey );
@@ -16232,7 +16232,7 @@ static void recoverLostAndFound2Init(sqlite3_recover *p){
   assert( p->laf.nMaxField==0 );
 
   pLaf->pMapInsert = recoverPrepare(p, p->dbOut,
-      "INSERT OR IGNORE INTO recovery.map(pgno, parent) VALUES(?, ?)"
+      "INSERT INTO recovery.map(pgno, parent) VALUES(?, ?)"
   );
   pLaf->pAllAndParent = recoverPreparePrintf(p, p->dbOut,
       "WITH RECURSIVE seq(ii) AS ("
@@ -21866,7 +21866,7 @@ static void tryToCloneData(
   zInsert = sqlite3_malloc64(200 + nTable + n*3);
   shell_check_oom(zInsert);
   sqlite3_snprintf(200+nTable,zInsert,
-                   "INSERT OR IGNORE INTO \"%s\" VALUES(?", zTable);
+                   "INSERT INTO \"%s\" VALUES(?", zTable);
   i = strlen30(zInsert);
   for(j=1; j<n; j++){
     memcpy(zInsert+i, ",?", 2);
