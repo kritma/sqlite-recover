@@ -1,0 +1,3 @@
+index.js -linguist-detectable
+index.d.ts -linguist-detectable
+src/sqlite-amalgamation-3430200/* -linguist-detectable
