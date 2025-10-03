@@ -1,7 +1,7 @@
 # sqlite-recover
 
 * Uses native sqlite methods to recover malformed database
-* Build with rust
+* Written in Rust for QoL and safety
 
 ## install
 ```sh
